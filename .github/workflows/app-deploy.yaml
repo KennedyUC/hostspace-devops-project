@@ -126,3 +126,4 @@ jobs:
           git add ./app-chart/${{ env.ENV }}-values.yaml
           git commit -m "[Automated Commit] updated docker image"
           git push origin ${{ env.ENV }} | true
+          
