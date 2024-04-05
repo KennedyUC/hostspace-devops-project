@@ -125,5 +125,5 @@ jobs:
           git config user.email "git-actions@users.noreply.github.com"      
           git add ./app-chart/${{ env.ENV }}-values.yaml
           git commit -m "[Automated Commit] updated docker image"
+          git pull origin ${{ env.ENV }}
           git push origin ${{ env.ENV }} | true
-          
