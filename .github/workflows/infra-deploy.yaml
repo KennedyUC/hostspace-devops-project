@@ -1,0 +1,101 @@
+name: Infrastructure Deployment Workflow
+
+on:
+  push:
+    branches:
+    - main
+    - dev
+    - stg
+    paths:
+    - .github/workflows/infra-deploy.yaml
+    - terraform-deployment/**
+
+jobs:
+  setup-project-environment:
+    runs-on: ubuntu-latest
+    outputs:
+      env_name: ${{ steps.project-env.outputs.env_name }}
+      sha: ${{ steps.commit-sha.outputs.sha }}
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set Project Environment
+      id: project-env
+      run: |
+        if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+          echo "env_name=prod" >> $GITHUB_OUTPUT
+        elif [ "${{ github.ref }}" = "refs/heads/dev" ]; then
+          echo "env_name=dev" >> $GITHUB_OUTPUT
+        elif [ "${{ github.ref }}" = "refs/heads/stg" ]; then
+          echo "env_name=stg" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Get Short Github Commit SHA
+      id: commit-sha
+      run: |
+        echo "sha=$(echo ${GITHUB_SHA} | cut -c1-7)" >> $GITHUB_OUTPUT
+
+  setup-project-infrastructure:
+    runs-on: ubuntu-latest
+    needs: [setup-project-environment]
+    environment: ${{ needs.setup-project-environment.outputs.env_name }}
+    env:
+      ENV: ${{ needs.setup-project-environment.outputs.env_name }}
+      IMG_TAG: ${{ needs.setup-project-environment.outputs.sha }}
+      WORK_DIR: ./terraform-deployment
+      TERRAFORM_VERSION: 1.7.3
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Copy over ENV files
+      run: |
+        mkdir -p .env/${{ env.ENV }}
+        echo "${{ secrets.AWS_ENVS }}" >> ".env/${{ env.ENV }}/aws.env"
+
+        mkdir .certs
+        echo "${{ secrets.TLS_CERT }}" >> ".certs/tls.crt"
+        echo "${{ secrets.TLS_KEY }}" >> ".certs/tls.key"
+
+        mkdir -p ~/.kube
+        touch ~/.kube/config
+            
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+    - name: Terraform Init
+      run: |
+        source "../.env/${{ env.ENV }}/aws.env"
+
+        terraform init \
+          -reconfigure \
+          -backend-config="bucket=$AWS_BUCKET" \
+          -backend-config="key=${{ env.ENV }}/terraform.tfstate" \
+          -backend-config="region=$AWS_REGION"
+      working-directory: ${{ env.WORK_DIR }} 
+
+    - name: Terraform Format
+      run: terraform fmt
+      working-directory: ${{ env.WORK_DIR }} 
+
+    - name: Terraform Plan
+      run: |
+        source "../.env/${{ env.ENV }}/aws.env"
+        
+        echo "${{ secrets.INFRA_ENVS }}" >> "${{ env.ENV }}-infra.tfvars"
+
+        terraform plan --var-file=${{ env.ENV }}-infra.tfvars -out=plan.tfdata
+      working-directory: ${{ env.WORK_DIR }} 
+
+    - name: Terraform Apply
+      run: |
+        source "../.env/${{ env.ENV }}/aws.env"
+
+        terraform apply -auto-approve plan.tfdata
+      working-directory: ${{ env.WORK_DIR }} 

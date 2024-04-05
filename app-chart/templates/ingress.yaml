@@ -1,0 +1,43 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.app.name }}-ingress
+  namespace: {{ .Values.app.namespace }}
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - app.kennweb.tech
+    secretName: app-server-tls
+  rules:
+  - host: app.kennweb.tech
+    http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service: 
+              name: {{ .Values.app.name }}-web
+              port: 
+                number: {{ .Values.web.port }}
+        - path: /admin
+          pathType: Prefix
+          backend:
+            service: 
+              name: {{ .Values.app.name }}-admin-api
+              port: 
+                number: {{ .Values.api.admin.port }}
+        - path: /student
+          pathType: Prefix
+          backend:
+            service: 
+              name: {{ .Values.app.name }}-student-api
+              port: 
+                number: {{ .Values.api.student.port }}
+        - path: /teacher
+          pathType: Prefix
+          backend:
+            service: 
+              name: {{ .Values.app.name }}-teacher-api
+              port: 
+                number: {{ .Values.api.teacher.port }}

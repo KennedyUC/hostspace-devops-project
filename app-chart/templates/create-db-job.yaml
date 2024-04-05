@@ -1,0 +1,133 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.app.name }}-create-db
+  namespace: {{ .Values.app.namespace }}
+  labels:
+    app: {{ .Values.app.name }}-db
+spec:
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app.name }}-db
+    spec:
+      restartPolicy: OnFailure
+      initContainers:
+        - name: check-db-connection
+          image: python:3.10
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |      
+              pip install psycopg2-binary && 
+              python - <<EOF
+              import psycopg2
+              import os
+              import time
+
+              POSTGRES_SERVER   = os.getenv('POSTGRES_SERVER')
+              POSTGRES_USER     = os.getenv('POSTGRES_USER')
+              ADMIN_DB          = os.getenv('ADMIN_DB')
+              POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
+              POSTGRES_PORT     = os.getenv('POSTGRES_PORT')
+              
+              conn_string       = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{ADMIN_DB}"
+
+              connected = False
+              
+              while not connected:
+                try:
+                    conn = psycopg2.connect(conn_string)
+                    conn.close()
+                    print("Successfully connected to the database")
+                    connected = True
+                except Exception as e:
+                    print(f"Failed to connect to the database: {e}")
+                    print("Retrying in 5 seconds...")
+                    time.sleep(5)
+              EOF
+          env:
+            - name: POSTGRES_SERVER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.app.name }}-db
+                  key: postgres_server
+            - name: ADMIN_DB
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.app.name }}-db
+                  key: admin_postgres_db
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.app.name }}-db
+                  key: postgres_user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.app.name }}-db
+                  key: postgres_password
+            - name: POSTGRES_PORT
+              value: "5432"
+      containers:
+        - name: create-user
+          image: python:3.10
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              pip install psycopg2-binary && 
+              python - <<EOF
+              import psycopg2
+              from psycopg2 import sql
+              import os
+
+              POSTGRES_SERVER   = os.getenv('POSTGRES_SERVER')
+              POSTGRES_USER     = os.getenv('POSTGRES_USER')
+              ADMIN_DB          = os.getenv('ADMIN_DB')
+              STUDENT_DB        = os.getenv('STUDENT_DB')
+              TEACHER_DB        = os.getenv('TEACHER_DB')
+              POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
+              POSTGRES_PORT     = os.getenv('POSTGRES_PORT')
+              
+              conn_string       = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{ADMIN_DB}"
+
+              conn = psycopg2.connect(conn_string)
+              conn.autocommit = True
+              cur = conn.cursor()
+              cur.execute(sql.SQL('CREATE DATABASE {};').format(sql.Identifier(STUDENT_DB)))
+              cur.execute(sql.SQL('CREATE DATABASE {};').format(sql.Identifier(TEACHER_DB)))
+              EOF
+          env:
+            - name: POSTGRES_SERVER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.app.name }}-db
+                  key: postgres_server
+            - name: ADMIN_DB
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.app.name }}-db
+                  key: admin_postgres_db
+            - name: STUDENT_DB
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.app.name }}-db
+                  key: student_postgres_db
+            - name: TEACHER_DB
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.app.name }}-db
+                  key: teacher_postgres_db
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.app.name }}-db
+                  key: postgres_user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.app.name }}-db
+                  key: postgres_password
+            - name: POSTGRES_PORT
+              value: "5432"

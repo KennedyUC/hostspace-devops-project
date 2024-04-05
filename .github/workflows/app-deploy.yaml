@@ -1,0 +1,129 @@
+name: Application Deployment Workflow
+
+on:
+  push:
+    branches:
+    - main
+    - dev
+    - stg
+    paths:
+    - .github/workflows/app-deploy.yaml
+    - app-chart/**
+    - backend/**
+    - frontend/**
+    - skaffold.yaml
+
+jobs:
+  setup-project-environment:
+    runs-on: ubuntu-latest
+    outputs:
+      env_name: ${{ steps.project-env.outputs.env_name }}
+      sha: ${{ steps.commit-sha.outputs.sha }}
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set Project Environment
+      id: project-env
+      run: |
+        if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+          echo "env_name=prod" >> $GITHUB_OUTPUT
+        elif [ "${{ github.ref }}" = "refs/heads/dev" ]; then
+          echo "env_name=dev" >> $GITHUB_OUTPUT
+        elif [ "${{ github.ref }}" = "refs/heads/stg" ]; then
+          echo "env_name=stg" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Get Short Github Commit SHA
+      id: commit-sha
+      run: |
+        echo "sha=$(echo ${GITHUB_SHA} | cut -c1-7)" >> $GITHUB_OUTPUT
+  
+  deploy-container-images:
+    runs-on: ubuntu-latest
+    needs: [setup-project-environment]
+    environment: ${{ needs.setup-project-environment.outputs.env_name }}
+    env:
+      ENV: ${{ needs.setup-project-environment.outputs.env_name }}
+      IMG_TAG: ${{ needs.setup-project-environment.outputs.sha }}
+      
+    steps:
+    - name: Checkout GitHub Action
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Copy over ENV files
+      run: |
+        mkdir -p .env/${{ env.ENV }}
+        echo '${{ secrets.CORE_ENVS }}' >> ".env/${{ env.ENV }}/core.env"
+        echo '${{ secrets.WEB_ENVS }}' >> ".env/${{ env.ENV }}/web.env"
+
+    - name: Configure the Action Runner
+      run: |
+        make ENV=${{ env.ENV }} install-utils
+
+    - name: Setup App Env Files
+      run: |
+        make ENV=${{ env.ENV }} setup-envs
+
+    - name: Login to Docker Registry
+      run: |
+        make ENV=${{ env.ENV }} docker-login
+
+    - name: Update Skaffold Manifest file
+      run: make ENV=${{ env.ENV }} update-skaffold-manifest
+
+    - name: Skaffold Build and Push
+      run: |
+        make ENV=${{ env.ENV }} VERSION="1.0.0" TAG=${{ env.IMG_TAG }} skaffold-build
+
+  deploy-app:
+    runs-on: ubuntu-latest
+    needs: [setup-project-environment, deploy-container-images]
+    environment: ${{ needs.setup-project-environment.outputs.env_name }}
+    env:
+      ENV: ${{ needs.setup-project-environment.outputs.env_name }}
+      IMG_TAG: ${{ needs.setup-project-environment.outputs.sha }}
+
+    permissions:
+      contents: write
+      
+    steps:
+    - name: Checkout GitHub Action
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Copy over ENV files
+      run: |
+        mkdir -p .env/${{ env.ENV }}
+        echo "${{ secrets.CORE_ENVS }}" >> ".env/${{ env.ENV }}/core.env"
+        echo "${{ secrets.WEB_ENVS }}" >> ".env/${{ env.ENV }}/web.env"
+
+        mkdir .certs
+        echo "${{ secrets.TLS_CERT }}" >> ".certs/tls.crt"
+        echo "${{ secrets.TLS_KEY }}" >> ".certs/tls.key"
+    
+    - name: Connect to AWS EKS
+      run: |
+        make ENV=${{ env.ENV }} set-kubectl-context
+
+    - name: Update the App Chart values file
+      run: |
+        make ENV=${{ env.ENV }} VERSION="1.0.0" TAG=${{ env.IMG_TAG }} update-chart-values
+
+    - name: Deploy Application update-chart-values
+      run: |
+        make ENV=${{ env.ENV }} deploy-app
+
+    - name: Commit and Push changes
+      run: |
+          git config user.name git-actions
+          git config user.email "git-actions@users.noreply.github.com"      
+          git add ./app-chart/${{ env.ENV }}-values.yaml
+          git commit -m "[Automated Commit] updated docker image"
+          git push origin ${{ env.ENV }} | true
+          
