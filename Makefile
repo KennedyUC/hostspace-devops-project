@@ -92,6 +92,11 @@ update-chart-values:
 
 .PHONY: deploy-app
 deploy-app:
+	@until kubectl get crd -n argocd >/dev/null 2>&1; do \
+        echo "Waiting for ArgoCD CRDs to be available..."; \
+        sleep 10; \
+    done
+	@echo "ArgoCD CRDs are available."
 	@echo '🏗️ Deploying Application'
 	@kubectl apply -f app-deployment/$(ENV)-deploy.yaml
 

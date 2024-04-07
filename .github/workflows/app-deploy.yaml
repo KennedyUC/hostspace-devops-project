@@ -12,6 +12,7 @@ on:
     - backend/**
     - frontend/**
     - skaffold.yaml
+    - Makefile
 
 jobs:
   setup-project-environment:
