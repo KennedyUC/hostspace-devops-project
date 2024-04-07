@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: {{ .Values.app.name }}-db
   namespace: {{ .Values.app.namespace }}
@@ -8,7 +8,8 @@ spec:
   selector:
     matchLabels:
       app: {{ .Values.app.name }}-db
-  serviceName: {{ .Values.app.name }}-db
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:

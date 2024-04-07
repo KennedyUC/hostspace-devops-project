@@ -22,16 +22,21 @@ install-utils:
 	@curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64 && \
 	 sudo install skaffold /usr/local/bin/
 
-.PHONY: set-kubectl-context
-set-kubectl-context:
+.PHONY: configure-awscli
+configure-awscli:
 	@aws configure set aws_access_key_id $(AWS_ACCESS_KEY)
 	@aws configure set aws_secret_access_key $(AWS_SECRET_KEY)
 	@aws configure set default.region $(AWS_REGION)
 	@aws configure set default.output json
-	@until aws eks describe-cluster --region $(AWS_REGION) --name $(EKS_CLUSTER_NAME) >/dev/null 2>&1; do \
-        echo "Waiting for the cluster to be reachable..."; \
+
+.PHONY: set-kubectl-context
+set-kubectl-context:
+	@until [ "$$(aws eks describe-cluster --region $(AWS_REGION) --name $(EKS_CLUSTER_NAME) --query "cluster.status" --output text)" = "ACTIVE" ]; do \
+        echo "Waiting for the cluster to be in the ACTIVE state..."; \
         sleep 10; \
 	done
+	@echo "Cluster is now in the ACTIVE state. Waiting for a few minutes before connecting to the cluster..."
+	@sleep 60
 	@aws eks --region $(AWS_REGION) update-kubeconfig --name $(EKS_CLUSTER_NAME)
 	@kubectl get nodes
 

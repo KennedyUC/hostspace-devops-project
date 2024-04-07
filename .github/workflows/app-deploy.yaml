@@ -38,8 +38,7 @@ jobs:
 
     - name: Get Short Github Commit SHA
       id: commit-sha
-      run: |
-        echo "sha=$(echo ${GITHUB_SHA} | cut -c1-7)" >> $GITHUB_OUTPUT
+      run: echo "sha=$(echo ${GITHUB_SHA} | cut -c1-7)" >> $GITHUB_OUTPUT
   
   deploy-container-images:
     runs-on: ubuntu-latest
@@ -62,23 +61,19 @@ jobs:
         echo '${{ secrets.WEB_ENVS }}' >> ".env/${{ env.ENV }}/web.env"
 
     - name: Configure the Action Runner
-      run: |
-        make ENV=${{ env.ENV }} install-utils
+      run: make ENV=${{ env.ENV }} install-utils
 
     - name: Setup App Env Files
-      run: |
-        make ENV=${{ env.ENV }} setup-envs
+      run: make ENV=${{ env.ENV }} setup-envs
 
     - name: Login to Docker Registry
-      run: |
-        make ENV=${{ env.ENV }} docker-login
+      run: make ENV=${{ env.ENV }} docker-login
 
     - name: Update Skaffold Manifest file
       run: make ENV=${{ env.ENV }} update-skaffold-manifest
 
     - name: Skaffold Build and Push
-      run: |
-        make ENV=${{ env.ENV }} VERSION="1.0.0" TAG=${{ env.IMG_TAG }} skaffold-build
+      run: make ENV=${{ env.ENV }} VERSION="1.0.0" TAG=${{ env.IMG_TAG }} skaffold-build
 
   deploy-app:
     runs-on: ubuntu-latest
@@ -106,18 +101,18 @@ jobs:
         mkdir .certs
         echo "${{ secrets.TLS_CERT }}" >> ".certs/tls.crt"
         echo "${{ secrets.TLS_KEY }}" >> ".certs/tls.key"
+
+    - name: Configure AWSCLI
+      run: make ENV=${{ env.ENV }} configure-awscli
     
     - name: Connect to AWS EKS
-      run: |
-        make ENV=${{ env.ENV }} set-kubectl-context
+      run: make ENV=${{ env.ENV }} set-kubectl-context
 
     - name: Update the App Chart values file
-      run: |
-        make ENV=${{ env.ENV }} VERSION="1.0.0" TAG=${{ env.IMG_TAG }} update-chart-values
+      run: make ENV=${{ env.ENV }} VERSION="1.0.0" TAG=${{ env.IMG_TAG }} update-chart-values
 
     - name: Deploy Application update-chart-values
-      run: |
-        make ENV=${{ env.ENV }} deploy-app
+      run: make ENV=${{ env.ENV }} deploy-app
 
     - name: Commit and Push changes
       run: |
