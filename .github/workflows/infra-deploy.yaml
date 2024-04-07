@@ -8,7 +8,7 @@ on:
     - stg
     paths:
     - .github/workflows/infra-deploy.yaml
-    - terraform-deployment/**
+    - terraform-deployment/*
 
 jobs:
   setup-project-environment:
@@ -98,4 +98,4 @@ jobs:
         source "../.env/${{ env.ENV }}/aws.env"
 
         terraform apply -auto-approve plan.tfdata
-      working-directory: ${{ env.WORK_DIR }} 
+      working-directory: ${{ env.WORK_DIR }}
