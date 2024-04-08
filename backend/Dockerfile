@@ -17,4 +17,4 @@ ENV API_PORT=${API_PORT}
 
 EXPOSE ${API_PORT}
 
-CMD python -m ${SERVER} | tee /tmp/server.logs
+CMD cd /app/src && python -m ${SERVER} | tee /tmp/server.logs
