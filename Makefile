@@ -32,12 +32,18 @@ configure-awscli:
 .PHONY: set-kubectl-context
 set-kubectl-context:
 	@until [ "$$(aws eks describe-cluster --region $(AWS_REGION) --name $(EKS_CLUSTER_NAME) --query "cluster.status" --output text)" = "ACTIVE" ]; do \
-        echo "Waiting for the cluster to be in the ACTIVE state..."; \
+        echo "Waiting for the cluster to be ready..."; \
         sleep 10; \
 	done
-	@echo "Cluster is now in the ACTIVE state. Waiting for a few minutes before connecting to the cluster..."
-	@sleep 60
+	@echo "Cluster is now in the ACTIVE state. Connecting to the cluster..."
 	@aws eks --region $(AWS_REGION) update-kubeconfig --name $(EKS_CLUSTER_NAME)
+	
+	@echo "Waiting for nodes to be ready..."
+	@until [ "$$(kubectl get nodes --field-selector=status.phase!=Running --output jsonpath='{.items[*].status.phase}')" = "" ]; do \
+        echo "Waiting for nodes to be ready..."; \
+        sleep 10; \
+    done
+	@echo "Nodes are now ready. Retrieving the nodes..."
 	@kubectl get nodes
 
 

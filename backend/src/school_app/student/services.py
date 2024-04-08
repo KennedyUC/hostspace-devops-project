@@ -3,14 +3,14 @@ from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
-from database import SessionLocal
+from school_app.student.database import SessionLocal
 from fastapi import Depends
 from typing import Optional
 from jose import jwt
-import schemas as sc
-import models
+import school_app.student.schemas as sc
+import school_app.student.models as models
 import json
-from config import SECRET_KEY, ALGORITHM
+from school_app.core.config import SECRET_KEY, ALGORITHM
 
 bcrypt_context = CryptContext(schemes=['bcrypt'], deprecated="auto")
 

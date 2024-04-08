@@ -3,13 +3,13 @@ from fastapi import FastAPI, Depends, HTTPException, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from datetime import timedelta
-from src.teacher.database import engine
-import src.teacher.services as sv
-import src.teacher.schemas as sc
+from school_app.teacher.database import engine
+import school_app.teacher.services as sv
+import school_app.teacher.schemas as sc
 from jose import jwt
 import uvicorn
 import requests
-import src.teacher.models as models
+import school_app.teacher.models as models
 from fastapi.openapi.docs import get_swagger_ui_html
 
 app = FastAPI()

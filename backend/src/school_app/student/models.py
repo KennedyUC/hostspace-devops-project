@@ -1,6 +1,6 @@
 from sqlalchemy import Column,Integer,VARCHAR,ForeignKey,BigInteger,Date,Boolean,Float
 from sqlalchemy.orm import relationship
-from database import Base
+from school_app.student.database import Base
 import datetime 
 from uuid import uuid4
 
