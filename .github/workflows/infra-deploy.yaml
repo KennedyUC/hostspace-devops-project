@@ -99,3 +99,4 @@ jobs:
 
         terraform apply -auto-approve plan.tfdata
       working-directory: ${{ env.WORK_DIR }}
+      
