@@ -9,6 +9,7 @@ on:
     paths:
     - .github/workflows/infra-deploy.yaml
     - terraform-deployment/*
+    - terraform-modules/**
 
 jobs:
   setup-project-environment:
