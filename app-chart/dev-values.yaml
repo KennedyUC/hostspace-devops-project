@@ -6,7 +6,7 @@ web:
   port: 3000
   container:
     image: "kennedyuche/web-dev"
-    tag: "1.0.0-1f994ab"
+    tag: "1.0.0-9f95b29"
   resources:
     requests:
       memory: "50Mi"
@@ -20,7 +20,7 @@ api:
     port: 9001
     container:
       image: "kennedyuche/admin-api-dev"
-      tag: "1.0.0-1f994ab"
+      tag: "1.0.0-9f95b29"
     resources:
       requests:
         memory: "50Mi"
@@ -33,7 +33,7 @@ api:
     port: 9002
     container:
       image: "kennedyuche/student-api-dev"
-      tag: "1.0.0-1f994ab"
+      tag: "1.0.0-9f95b29"
     resources:
       requests:
         memory: "50Mi"
@@ -46,7 +46,7 @@ api:
     port: 9003
     container:
       image: "kennedyuche/teacher-api-dev"
-      tag: "1.0.0-1f994ab"
+      tag: "1.0.0-9f95b29"
     resources:
       requests:
         memory: "50Mi"
