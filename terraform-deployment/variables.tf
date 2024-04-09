@@ -76,21 +76,25 @@ variable "aws_region" {
 variable "user_access_key" {
   description = "IAM user access key"
   type        = string
+  sensitive   = true
 }
 
 variable "user_secret_key" {
   description = "IAM user secret key"
   type        = string
+  sensitive   = true
 }
 
 variable "grafana_admin_pass" {
   description = "Grafana admin password"
   type        = string
+  sensitive   = true
 }
 
 variable "argocd_admin_password" {
   description = "ArgoCD admin password"
   type        = string
+  sensitive   = true
 }
 
 variable "enable_powershell_interpreter" {
