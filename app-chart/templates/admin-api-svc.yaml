@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.app.name }}-admin-api
+  namespace: {{ .Values.app.namespace }}
+spec:
+  selector:
+    app: {{ .Values.app.name }}-admin-api
+  ports:
+    - protocol: TCP
+      port: {{ .Values.api.admin.port }}

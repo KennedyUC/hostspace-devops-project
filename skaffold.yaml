@@ -1,0 +1,45 @@
+apiVersion: skaffold/v3alpha1
+kind: Config
+metadata:
+  name: skaffold-deployment
+build:
+  artifacts:
+  - image: student-api
+    context: backend/
+    sync:
+      infer:
+      - '**/*'
+    docker:
+      dockerfile: Dockerfile
+      buildArgs:
+        ARG_SERVER: "school_app.student.main"
+        API_PORT: 9002
+  - image: teacher-api
+    context: backend
+    sync:
+      infer:
+      - '**/*'
+    docker:
+      dockerfile: Dockerfile
+      buildArgs:
+        ARG_SERVER: "school_app.teacher.main"
+        API_PORT: 9003
+  - image: admin-api
+    context: backend
+    sync:
+      infer:
+      - '**/*'
+    docker:
+      dockerfile: Dockerfile
+      buildArgs:
+        ARG_SERVER: "school_app.admin.main"
+        API_PORT: 9001
+  - image: web
+    context: frontend
+    sync:
+      infer:
+      - '**/*'
+    docker:
+      dockerfile: Dockerfile
+  tagPolicy:
+    gitCommit: {}

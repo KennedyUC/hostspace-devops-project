@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app.name }}-student-api
+  namespace: {{ .Values.app.namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.app.name }}-student-api
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app.name }}-student-api
+    spec:
+      containers:
+      - name: {{ .Values.app.name }}-student-api
+        image: {{ .Values.api.student.container.image }}:{{ .Values.api.student.container.tag }}
+        imagePullPolicy: Always
+        resources:
+          {{- if .Values.api.student.resources.requests }}
+          requests:
+            memory: {{ .Values.api.student.resources.requests.memory | default "100Mi" | quote }}
+            cpu: {{ .Values.api.student.resources.requests.cpu | default "10m" | quote }}
+          {{- else }}
+          requests:
+            memory: "100Mi"
+            cpu: "10m"
+          {{- end }}
+
+          {{- if .Values.api.student.resources.limits }}
+          limits:
+            memory: {{ .Values.api.student.resources.limits.memory | default "2048Mi" | quote }}
+            cpu: {{ .Values.api.student.resources.limits.cpu | default "500m" | quote }}
+          {{- else }}
+          limits:
+            memory: "2048Mi"
+            cpu: "500m"
+          {{- end }}
+        ports:
+        - containerPort: {{ .Values.api.student.port }}

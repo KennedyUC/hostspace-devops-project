@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: school-app
+  namespace: argocd
+spec:
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: school-app
+  source:
+    repoURL: https://github.com/KennedyUC/hostspace-devops-project.git
+    path: app-chart
+    targetRevision: prod
+    helm:
+      valueFiles:
+        - prod-values.yaml
+  project: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

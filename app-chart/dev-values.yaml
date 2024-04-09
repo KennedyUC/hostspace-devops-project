@@ -1,0 +1,63 @@
+app:
+  name: "school-app"
+  namespace: "school-app"
+web:
+  replicas: "1"
+  port: 3000
+  container:
+    image: "kennedyuche/web-dev"
+    tag: "1.0.0-3d0f83e"
+  resources:
+    requests:
+      memory: "50Mi"
+      cpu: "20m"
+    limits:
+      memory: ""
+      cpu: ""
+api:
+  admin:
+    replicas: "1"
+    port: 9001
+    container:
+      image: "kennedyuche/admin-api-dev"
+      tag: "1.0.0-3d0f83e"
+    resources:
+      requests:
+        memory: "50Mi"
+        cpu: "20m"
+      limits:
+        memory: ""
+        cpu: ""
+  student:
+    replicas: "1"
+    port: 9002
+    container:
+      image: "kennedyuche/student-api-dev"
+      tag: "1.0.0-3d0f83e"
+    resources:
+      requests:
+        memory: "50Mi"
+        cpu: "20m"
+      limits:
+        memory: ""
+        cpu: ""
+  teacher:
+    replicas: "1"
+    port: 9003
+    container:
+      image: "kennedyuche/teacher-api-dev"
+      tag: "1.0.0-3d0f83e"
+    resources:
+      requests:
+        memory: "50Mi"
+        cpu: "20m"
+      limits:
+        memory: ""
+        cpu: ""
+db:
+  container:
+    image: "postgres"
+    tag: "latest"
+  storageClass: gp2-immediate
+  storageSize: 10G
+  port: 5432
