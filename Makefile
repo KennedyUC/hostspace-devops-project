@@ -98,7 +98,7 @@ update-chart-images:
 
 .PHONY: deploy-app
 deploy-app:
-	@until kubectl get crd -n argocd 2>/dev/null; do \
+	@until kubectl get crd applications.argoproj.io 2>/dev/null; do \
 		echo "Waiting for ArgoCD CRDs to be available..."; \
 		sleep 10; \
     done

@@ -123,3 +123,4 @@ jobs:
           git commit -m "[Automated Commit] updated docker image"
           git pull origin ${{ env.ENV }}
           git push origin ${{ env.ENV }} | true
+          
