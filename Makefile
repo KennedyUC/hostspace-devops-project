@@ -31,10 +31,11 @@ configure-awscli:
 
 .PHONY: set-kubectl-context
 set-kubectl-context:
-	@until [ "$$(aws eks describe-cluster --region $(AWS_REGION) --name $(EKS_CLUSTER_NAME) --query "cluster.status" --output text)" = "ACTIVE" ]; do \
-        echo "Waiting for the cluster to be ready..."; \
-        sleep 10; \
+	@until [ "$$(aws eks describe-cluster --region $(AWS_REGION) --name $(EKS_CLUSTER_NAME) --query "cluster.status" --output text 2>/dev/null)" = "ACTIVE" ]; do \
+    	echo "Waiting for the cluster to be ready..."; \
+    	sleep 10; \
 	done
+
 	@echo "Cluster is now in the ACTIVE state. Connecting to the cluster..."
 	@aws eks --region $(AWS_REGION) update-kubeconfig --name $(EKS_CLUSTER_NAME)
 	
