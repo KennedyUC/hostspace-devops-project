@@ -27,7 +27,7 @@ module "aws_eks_setup" {
   user_secret_key               = var.user_secret_key
   enable_powershell_interpreter = var.enable_powershell_interpreter
   app_namespace                 = "school-app"
-  namespaces                    = ["argocd", "monitoring", "webapp", "ingress", "sealed-secret"]
+  namespaces                    = ["argocd", "monitoring", "webapp", "ingress", "sealed-secret", "school-app"]
 
   depends_on = [module.aws_network_setup]
 }

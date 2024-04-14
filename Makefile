@@ -39,7 +39,7 @@ set-kubectl-context:
 	@echo "Cluster is now in the ACTIVE state. Connecting to the cluster..."
 	@aws eks --region $(AWS_REGION) update-kubeconfig --name $(EKS_CLUSTER_NAME)
 	
-	@until kubectl get nodes 2>/dev/null && kubectl get nodes 2>/dev/null | awk 'NR > 1 {print $2}' | grep -q "Ready"; do \
+	@until kubectl get nodes 2>/dev/null | grep -q " Ready "; do \
 		echo "Waiting for nodes to be ready..."; \
         sleep 10; \
     done
