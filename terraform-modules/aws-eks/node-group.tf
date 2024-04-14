@@ -42,7 +42,6 @@ resource "null_resource" "kubectl_config" {
                 aws eks --region $region update-kubeconfig --name $cluster_name
 
                 kubectl get nodes
-                kubectl delete sc gp2
               EOT
 
     environment = {

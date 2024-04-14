@@ -101,3 +101,8 @@ variable "enable_powershell_interpreter" {
   description = "Enable powershell interpreter for local-exec provisioner"
   type        = bool
 }
+
+variable "app_namespace" {
+  description = "Application namespace"
+  type        = string
+}

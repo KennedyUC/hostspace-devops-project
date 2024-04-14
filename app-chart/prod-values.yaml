@@ -60,5 +60,5 @@ db:
   container:
     image: "postgres"
     tag: "latest"
-  storageSize: 10G
+  storageSize: 5G
   port: 5432

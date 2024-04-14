@@ -43,7 +43,6 @@ resource "helm_release" "monitoring" {
   ]
 
   depends_on = [
-    kubernetes_namespace.monitoring,
     kubernetes_secret.monitoring
   ]
 }

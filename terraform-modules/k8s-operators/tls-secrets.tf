@@ -1,14 +1,4 @@
-resource "kubernetes_namespace" "secret_namespaces" {
-  for_each = toset(var.secret_namespaces)
-  
-  metadata {
-    name = each.key
-  }
-
-  depends_on = [helm_release.nginx]
-}
-
-resource "kubernetes_secret" "app-server-tls" {
+resource "kubernetes_secret" "webapp" {
   metadata {
     name      = "app-server-tls"
     namespace = "${var.app_namespace}"
@@ -22,11 +12,11 @@ resource "kubernetes_secret" "app-server-tls" {
   type = "kubernetes.io/tls"
 
   depends_on = [
-    helm_release.nginx,
-    kubernetes_namespace.secret_namespaces]
+    helm_release.nginx
+  ]
 }
 
-resource "kubernetes_secret" "argocd_server_tls" {
+resource "kubernetes_secret" "argocd" {
   metadata {
     name      = "argocd-server-tls"
     namespace = "${var.argocd_namespace}"
@@ -40,8 +30,8 @@ resource "kubernetes_secret" "argocd_server_tls" {
   type = "kubernetes.io/tls"
 
   depends_on = [
-    helm_release.nginx,
-    kubernetes_namespace.secret_namespaces]
+    helm_release.nginx
+  ]
 }
 
 resource "kubernetes_secret" "monitoring" {
@@ -58,6 +48,6 @@ resource "kubernetes_secret" "monitoring" {
   type = "kubernetes.io/tls"
 
   depends_on = [
-    helm_release.nginx,
-    kubernetes_namespace.secret_namespaces]
+    helm_release.nginx
+  ]
 }
