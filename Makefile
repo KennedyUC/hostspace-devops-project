@@ -39,7 +39,7 @@ set-kubectl-context:
 	@echo "Cluster is now in the ACTIVE state. Connecting to the cluster..."
 	@aws eks --region $(AWS_REGION) update-kubeconfig --name $(EKS_CLUSTER_NAME)
 	
-	@until { kubectl get nodes >/dev/null && kubectl get nodes | grep -q "Ready"; }; do \
+	@until kubectl get nodes 2>/dev/null && kubectl get nodes 2>/dev/null | awk 'NR > 1 {print $2}' | grep -q "Ready"; do \
 		echo "Waiting for nodes to be ready..."; \
         sleep 10; \
     done
@@ -98,11 +98,11 @@ update-chart-images:
 
 .PHONY: deploy-app
 deploy-app:
-	@until kubectl get crd -n argocd >/dev/null; do \
+	@until kubectl get crd -n argocd 2>/dev/null; do \
 		echo "Waiting for ArgoCD CRDs to be available..."; \
 		sleep 10; \
     done
 	@echo "ArgoCD CRDs are available."
-	@sleep 120
+	@sleep 60
 	@echo '🏗️ Deploying Application'
 	@kubectl apply -f app-deployment/$(ENV)-deploy.yaml

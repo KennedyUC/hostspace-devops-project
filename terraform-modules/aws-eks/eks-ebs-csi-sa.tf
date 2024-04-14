@@ -14,4 +14,6 @@ resource "kubernetes_service_account" "ebs_csi_controller_sa" {
       "eks.amazonaws.com/role-arn" = aws_iam_role.eks_cluster_ebs_csi_role.arn
     }
   }
+
+  depends_on = [kubernetes_namespace.namespaces]
 }
