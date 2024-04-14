@@ -82,3 +82,13 @@ variable "argocd_admin_password" {
   description = "ArgoCD admin password"
   type        = string
 }
+
+variable "secret_namespaces" {
+  description = "List of namespaces to create the tls secret"
+  type        = list(string)
+}
+
+variable "app_namespace" {
+  description = "Application namespace"
+  type        = string
+}

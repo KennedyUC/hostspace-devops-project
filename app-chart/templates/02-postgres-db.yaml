@@ -1,20 +1,19 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ .Values.app.name }}-db
-  namespace: {{ .Values.app.namespace }}
 spec:
   replicas: 1
+  serviceName: {{ .Values.app.name }}-db
   selector:
     matchLabels:
       app: {{ .Values.app.name }}-db
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
         app: {{ .Values.app.name }}-db
     spec:
+      serviceAccountName: ebs-csi-controller-sa
       containers:
         - name: {{ .Values.app.name }}-db
           image: {{ .Values.db.container.image }}:{{ .Values.db.container.tag }}
@@ -40,8 +39,13 @@ spec:
               value: "5432"
           volumeMounts:
             - mountPath: /var/lib/postgres/data
-              name: db-data
-      volumes:
-        - name: db-data
-          persistentVolumeClaim:
-            claimName: postgres-pvc
+              name: data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: gp2
+        resources:
+          requests:
+            storage: {{ .Values.db.storageSize }}

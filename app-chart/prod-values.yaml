@@ -1,6 +1,5 @@
 app:
   name: "school-app"
-  namespace: "school-app"
 
 web:
   replicas: "1"
@@ -61,6 +60,5 @@ db:
   container:
     image: "postgres"
     tag: "latest"
-  storageClass: gp2-immediate
   storageSize: 10G
   port: 5432

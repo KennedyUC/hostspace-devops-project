@@ -2,7 +2,6 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ .Values.app.name }}-create-db
-  namespace: {{ .Values.app.namespace }}
   labels:
     app: {{ .Values.app.name }}-db
 spec:

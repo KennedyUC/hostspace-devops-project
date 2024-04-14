@@ -102,6 +102,7 @@ deploy-app:
         sleep 10; \
     done
 	@echo "ArgoCD CRDs are available."
+	@sleep 120
 	@echo '🏗️ Deploying Application'
 	@kubectl apply -f app-deployment/$(ENV)-deploy.yaml
 

@@ -56,3 +56,44 @@ resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly" {
   role       = aws_iam_role.EKSNodeGroupRole.name
   depends_on = [aws_iam_role.EKSNodeGroupRole]
 }
+
+resource "aws_iam_policy" "eks_cluster_ebs_csi_iam_policy" {
+  name        = "${var.project_name}-${var.env}-k8s-ebs-csi-policy"
+  path        = "/"
+  description = "EBS CSI IAM Policy"
+  policy      = data.http.eks_cluster_ebs_csi_iam_policy.response_body
+  tags = {
+    tag-key = "${var.project_name}-${var.env}-k8s-ebs-csi-policy"
+  }
+}
+
+data "aws_iam_policy_document" "eks_cluster_ebs_csi_policy" {
+  statement {
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+    effect  = "Allow"
+    principals {
+      type        = "Federated"
+      identifiers = [aws_iam_openid_connect_provider.cluster_iodc_provider.arn]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "${local.eks_cluster_openid_provider_arn}:sub"
+      values   = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
+    }
+  }
+  version = "2012-10-17"
+}
+
+resource "aws_iam_role" "eks_cluster_ebs_csi_role" {
+  name               = "${var.project_name}-${var.env}-k8s-ebs-csi-role"
+  assume_role_policy = data.aws_iam_policy_document.eks_cluster_ebs_csi_policy.json
+  
+  tags = {
+    tag-key = "${var.project_name}-${var.env}-k8s-ebs-csi-role"
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "eks_cluster_ebs_csi_role_policy_attach" {
+  policy_arn = aws_iam_policy.eks_cluster_ebs_csi_iam_policy.arn
+  role       = aws_iam_role.eks_cluster_ebs_csi_role.name
+}

@@ -26,6 +26,7 @@ module "aws_eks_setup" {
   user_access_key               = var.user_access_key
   user_secret_key               = var.user_secret_key
   enable_powershell_interpreter = var.enable_powershell_interpreter
+  app_namespace                 = "school_app"
 
   depends_on = [module.aws_network_setup]
 }
@@ -49,6 +50,7 @@ module "k8s_operators_setup" {
   promstack_chart_version       = "57.2.0"
   grafana_admin_pass            = var.grafana_admin_pass
   argocd_admin_password         = var.argocd_admin_password
+  secret_namespaces             = ["argocd", "monitoring", "school_app"]
 
   depends_on = [module.aws_eks_setup]
 }

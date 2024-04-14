@@ -1,27 +1,3 @@
-resource "kubernetes_namespace" "monitoring" {
-  metadata {
-    name = var.promstack_namespace
-  }
-
-  depends_on = [helm_release.nginx]
-}
-
-resource "kubernetes_secret" "monitoring" {
-  metadata {
-    name      = "promstack-tls"
-    namespace = "${var.promstack_namespace}"
-  }
-
-  data = {
-    "tls.crt" = file("${var.tls_cert_path}")
-    "tls.key" = file("${var.tls_key_path}")
-  }
-
-  type = "kubernetes.io/tls"
-
-  depends_on = [helm_release.nginx]
-}
-
 resource "helm_release" "monitoring" {
   name              = var.promstack_release_name
   repository        = "https://prometheus-community.github.io/helm-charts"
