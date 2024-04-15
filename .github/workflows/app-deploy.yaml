@@ -109,10 +109,10 @@ jobs:
     - name: Connect to AWS EKS
       run: make ENV=${{ env.ENV }} set-kubectl-context
 
-    - name: Update the App Chart values file
-      run: make ENV=${{ env.ENV }} VERSION="1.0.0" TAG=${{ env.IMG_TAG }} update-chart-values
+    - name: Dynamically update the App Chart images
+      run: make ENV=${{ env.ENV }} VERSION="1.0.0" TAG=${{ env.IMG_TAG }} update-chart-images
 
-    - name: Deploy Application update-chart-values
+    - name: Deploy Application 
       run: make ENV=${{ env.ENV }} deploy-app
 
     - name: Commit and Push changes

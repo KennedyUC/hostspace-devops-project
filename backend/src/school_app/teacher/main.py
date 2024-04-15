@@ -27,13 +27,7 @@ health_router = APIRouter()
 app = FastAPI()
 
 origins = [
-           "http://127.0.0.1:3000",
-           "http://127.0.0.1:3000/register",
-           "http://127.0.0.1:8001",
-           "http://127.0.0.1:8000",
-           "http://127.0.0.1:8002",
-           "http://127.0.0.1:8002/",
-           "http://localhost:3000",
+           "https://app.kennweb.tech"
            ]
 app.add_middleware(
     CORSMiddleware,
@@ -210,4 +204,4 @@ app.include_router(salary_router, tags=['Teacher Salary'], prefix="/teacher")
 app.include_router(health_router, tags=['Health'], prefix="/teacher")
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=9003, reload=True)
+    uvicorn.run("school_app.teacher.main:app", host="0.0.0.0", port=9003, reload=True)

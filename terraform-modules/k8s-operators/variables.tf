@@ -82,3 +82,8 @@ variable "argocd_admin_password" {
   description = "ArgoCD admin password"
   type        = string
 }
+
+variable "app_namespace" {
+  description = "Application namespace"
+  type        = string
+}

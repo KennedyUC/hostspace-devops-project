@@ -12,6 +12,6 @@ resource "aws_eks_cluster" "eks_cluster" {
   ]
 
   tags = {
-    Name = "${var.project_name}-${var.env}"
+    Name = "${var.project_name}-${var.env}-k8s-cluster"
   }
 }

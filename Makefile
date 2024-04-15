@@ -3,8 +3,6 @@ SHELL := /bin/bash
 ENV ?= ""
 TAG ?= ""
 VERSION ?= ""
-CERT_FILE ?= ""
-KEY_FILE ?= ""
 
 include .env/$(ENV)/core.env
 include .env/$(ENV)/web.env
@@ -31,17 +29,19 @@ configure-awscli:
 
 .PHONY: set-kubectl-context
 set-kubectl-context:
-	@until [ "$$(aws eks describe-cluster --region $(AWS_REGION) --name $(EKS_CLUSTER_NAME) --query "cluster.status" --output text)" = "ACTIVE" ]; do \
-        echo "Waiting for the cluster to be ready..."; \
-        sleep 10; \
+	@until [ "$$(aws eks describe-cluster --region $(AWS_REGION) --name $(EKS_CLUSTER_NAME) --query "cluster.status" --output text 2>/dev/null)" = "ACTIVE" ]; do \
+    	echo "Waiting for the cluster to be ready..."; \
+    	sleep 10; \
 	done
+
 	@echo "Cluster is now in the ACTIVE state. Connecting to the cluster..."
 	@aws eks --region $(AWS_REGION) update-kubeconfig --name $(EKS_CLUSTER_NAME)
 	
-	@until kubectl get nodes >/dev/null 2>&1 && kubectl get nodes | grep -q "Ready"; do \
+	@until kubectl get nodes 2>/dev/null | grep -q " Ready "; do \
 		echo "Waiting for nodes to be ready..."; \
         sleep 10; \
     done
+	@sleep 20
 	@echo "Nodes are ready."
 	@kubectl get nodes
 
@@ -83,8 +83,8 @@ setup-envs:
 	@echo REACT_APP_STUDENT_URL=$(REACT_APP_STUDENT_URL) >> frontend/.env
 	@echo REACT_APP_TEACHER_URL=$(REACT_APP_TEACHER_URL) >> frontend/.env
 
-.PHONY: update-chart-values
-update-chart-values:
+.PHONY: update-chart-images
+update-chart-images:
 	@echo '🏗️ Updating chart values manifest file'
 	@yq e -i '.api.admin.container.image = "$(DOCKER_REPO)/admin-api-$(ENV)"' app-chart/$(ENV)-values.yaml
 	@yq e -i '.api.admin.container.tag = "$(VERSION)-$(TAG)"' app-chart/$(ENV)-values.yaml
@@ -97,15 +97,11 @@ update-chart-values:
 
 .PHONY: deploy-app
 deploy-app:
-	@until kubectl get crd -n argocd >/dev/null 2>&1; do \
-        echo "Waiting for ArgoCD CRDs to be available..."; \
-        sleep 10; \
+	@until kubectl get crd applications.argoproj.io 2>/dev/null; do \
+		echo "Waiting for ArgoCD CRDs to be available..."; \
+		sleep 10; \
     done
 	@echo "ArgoCD CRDs are available."
+	@sleep 20
 	@echo '🏗️ Deploying Application'
 	@kubectl apply -f app-deployment/$(ENV)-deploy.yaml
-
-.PHONY: configure-app-tls 
-configure-app-tls:
-	@echo '🏗️ Installing Nginx Ingress TLS secret'
-	@kubectl create secret tls app-server-tls --cert=$(CERT_FILE) --key=$(KEY_FILE) --namespace=school-app -o yaml | kubectl apply -f -
