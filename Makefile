@@ -3,8 +3,6 @@ SHELL := /bin/bash
 ENV ?= ""
 TAG ?= ""
 VERSION ?= ""
-CERT_FILE ?= ""
-KEY_FILE ?= ""
 
 include .env/$(ENV)/core.env
 include .env/$(ENV)/web.env

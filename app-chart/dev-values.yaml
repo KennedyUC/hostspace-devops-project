@@ -2,7 +2,7 @@ app:
   name: "school-app"
 web:
   replicas: "1"
-  port: 3000
+  port: 80
   container:
     image: "kennedyuche/web-dev"
     tag: "1.0.0-743fd21"
