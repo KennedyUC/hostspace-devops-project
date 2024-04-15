@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app.name }}-admin-api
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.app.name }}-admin-api
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app.name }}-admin-api
+    spec:
+      initContainers:
+        - name: check-db-connection
+          image: apache/airflow:2.9.0
+          imagePullPolicy: Always
+          command: ["/bin/sh", "-c"]
+          args:
+            - |      
+              python - <<EOF
+              import psycopg2
+              import os
+              import time
+
+              POSTGRES_SERVER   = os.getenv('POSTGRES_SERVER')
+              POSTGRES_USER     = os.getenv('POSTGRES_USER')
+              ADMIN_DB          = os.getenv('ADMIN_DB')
+              POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
+              POSTGRES_PORT     = os.getenv('POSTGRES_PORT')
+              
+              conn_string       = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{ADMIN_DB}"
+
+              connected = False
+              
+              while not connected:
+                try:
+                    conn = psycopg2.connect(conn_string)
+                    conn.close()
+                    print("Successfully connected to the database")
+                    connected = True
+                except Exception as e:
+                    print(f"Failed to connect to the database: {e}")
+                    print("Retrying in 5 seconds...")
+                    time.sleep(5)
+              EOF
+          env:
+            - name: POSTGRES_SERVER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.app.name }}-db
+                  key: postgres_server
+            - name: ADMIN_DB
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.app.name }}-db
+                  key: admin_postgres_db
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.app.name }}-db
+                  key: postgres_user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.app.name }}-db
+                  key: postgres_password
+            - name: POSTGRES_PORT
+              value: "5432"
+      containers:
+      - name: {{ .Values.app.name }}-admin-api
+        image: {{ .Values.api.admin.container.image }}:{{ .Values.api.admin.container.tag }}
+        imagePullPolicy: Always
+        resources:
+          {{- if .Values.api.admin.resources.requests }}
+          requests:
+            memory: {{ .Values.api.admin.resources.requests.memory | default "100Mi" | quote }}
+            cpu: {{ .Values.api.admin.resources.requests.cpu | default "10m" | quote }}
+          {{- else }}
+          requests:
+            memory: "100Mi"
+            cpu: "10m"
+          {{- end }}
+
+          {{- if .Values.api.admin.resources.limits }}
+          limits:
+            memory: {{ .Values.api.admin.resources.limits.memory | default "2048Mi" | quote }}
+            cpu: {{ .Values.api.admin.resources.limits.cpu | default "500m" | quote }}
+          {{- else }}
+          limits:
+            memory: "2048Mi"
+            cpu: "500m"
+          {{- end }}
+        ports:
+        - containerPort: {{ .Values.api.admin.port }}

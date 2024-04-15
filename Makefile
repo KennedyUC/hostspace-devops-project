@@ -43,6 +43,7 @@ set-kubectl-context:
 		echo "Waiting for nodes to be ready..."; \
         sleep 10; \
     done
+	@sleep 20
 	@echo "Nodes are ready."
 	@kubectl get nodes
 
@@ -103,6 +104,6 @@ deploy-app:
 		sleep 10; \
     done
 	@echo "ArgoCD CRDs are available."
-	@sleep 60
+	@sleep 20
 	@echo '🏗️ Deploying Application'
 	@kubectl apply -f app-deployment/$(ENV)-deploy.yaml

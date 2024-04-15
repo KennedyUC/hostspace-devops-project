@@ -93,7 +93,9 @@ spec:
               conn.autocommit = True
               cur = conn.cursor()
               cur.execute(sql.SQL('CREATE DATABASE {};').format(sql.Identifier(STUDENT_DB)))
+              print("student database created")
               cur.execute(sql.SQL('CREATE DATABASE {};').format(sql.Identifier(TEACHER_DB)))
+              print("teacher database created")
               EOF
           env:
             - name: POSTGRES_SERVER
